@@ -1,6 +1,6 @@
 {
   "name": "weather-view",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A weather widget written in React",
   "main": "dist/index.js",
   "scripts": {
