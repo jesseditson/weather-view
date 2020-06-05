@@ -1,0 +1,58 @@
+{
+  "name": "weather-view",
+  "version": "0.1.0",
+  "description": "A weather widget written in React",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "prepare": "npm run clean && npm run build",
+    "build": "tsc",
+    "build:watch": "tsc --watch --inlineSourceMap",
+    "clean": "rm -rf dist",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jesseditson/weather-view.git"
+  },
+  "keywords": [
+    "React",
+    "Weather",
+    "Widget",
+    "View"
+  ],
+  "author": "Jesse Ditson <jesse.ditson@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jesseditson/weather-view/issues"
+  },
+  "homepage": "https://github.com/jesseditson/weather-view#readme",
+  "devDependencies": {
+    "@babel/core": "^7.10.2",
+    "@babel/preset-env": "^7.10.2",
+    "@babel/preset-react": "^7.10.1",
+    "@babel/preset-typescript": "^7.10.1",
+    "@emotion/core": "^10.0.28",
+    "@emotion/styled": "^10.0.27",
+    "@storybook/addon-actions": "^5.3.19",
+    "@storybook/addon-links": "^5.3.19",
+    "@storybook/addons": "^5.3.19",
+    "@storybook/react": "^5.3.19",
+    "@types/jest": "^25.2.3",
+    "@types/react-test-renderer": "^16.9.2",
+    "babel-jest": "^26.0.1",
+    "babel-loader": "^8.1.0",
+    "emotion": "^10.0.27",
+    "jest": "^26.0.1",
+    "prettier": "^2.0.5",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-test-renderer": "^16.13.1",
+    "ts-jest": "^26.1.0",
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.9.5"
+  },
+  "dependencies": {}
+}

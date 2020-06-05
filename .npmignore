@@ -1,0 +1,5 @@
+# this package is like 90% build and test
+*
+# only publish dist (and this file to help folks understand what's going on)
+!.npmignore
+!dist

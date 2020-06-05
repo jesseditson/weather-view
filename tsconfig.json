@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "jsx": "react",
+        "esModuleInterop": true,
+        "outDir": "./dist",
+        "downlevelIteration": true
+    },
+    "include": ["./src/**/*.tsx"],
+    "exclude": ["./src/**/*.test.tsx"]
+}
