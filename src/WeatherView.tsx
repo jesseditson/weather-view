@@ -1,6 +1,6 @@
-import React, { SFC } from 'react'
 import styled from '@emotion/styled'
 import { injectGlobal } from 'emotion'
+import React, { SFC } from 'react'
 
 injectGlobal`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
