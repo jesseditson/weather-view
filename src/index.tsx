@@ -1,4 +1,4 @@
-import React, { SFC, useState, useEffect } from 'react'
+import React, { useState, useEffect, FunctionComponent, useRef } from 'react'
 import { WeatherView, WeatherData } from './WeatherView'
 
 interface MainProps {
@@ -90,12 +90,16 @@ const getWeatherData = async ({
     return weatherDataFromOpenMapData(body as OpenWeatherMapData)
 }
 
-const Main: SFC<MainProps> = (props) => {
+const Main: FunctionComponent<MainProps> = (props) => {
     const [weatherData, setWeatherData] = useState<WeatherData | undefined>()
     const [error, setError] = useState<Error | undefined>()
+    const locationRef = useRef<string>();
+    const apiKeyRef = useRef<string>();
     useEffect(() => {
         const fetchData = props.onGetWeatherData || getWeatherData
-        if (!weatherData) {
+        if (!weatherData || apiKeyRef.current !== props.apiKey || locationRef.current === props.location) {
+            apiKeyRef.current = props.apiKey
+            locationRef.current = props.location
             fetchData({
                 apiKey: props.apiKey,
                 location: props.location,
@@ -103,7 +107,7 @@ const Main: SFC<MainProps> = (props) => {
                 .then(setWeatherData)
                 .catch(setError)
         }
-    }, [props.onGetWeatherData])
+    }, [props.onGetWeatherData, props.location, props.apiKey])
     return <WeatherView data={weatherData} error={error} />
 }
 
