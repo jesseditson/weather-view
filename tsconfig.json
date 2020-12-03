@@ -5,6 +5,7 @@
         "jsx": "react",
         "esModuleInterop": true,
         "outDir": "./dist",
+        "declaration": true,
         "downlevelIteration": true
     },
     "include": ["./src/**/*.tsx"],
