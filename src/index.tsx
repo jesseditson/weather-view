@@ -73,39 +73,108 @@ export const weatherDataFromOpenMapData = (
     }
 }
 
-const getWeatherData = async ({
-    apiKey,
-    location,
-}: {
+interface GetWeatherOpts {
     apiKey: string
     location: string
-}): Promise<WeatherData> => {
-    const res = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`
-    )
-    const body = await res.json()
-    if (res.status !== 200) {
-        throw new Error(body.message)
-    }
-    return weatherDataFromOpenMapData(body as OpenWeatherMapData)
 }
+
+type GetWeather = (opts: GetWeatherOpts) => Promise<WeatherData>
+
+const getWeatherData = ({
+    apiKey,
+    location,
+}: GetWeatherOpts): [() => void, Promise<WeatherData>] => {
+    const controller = new AbortController()
+    const { signal } = controller
+    const promise = fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`,
+        { signal }
+    ).then(async (res) => {
+        const body = await res.json()
+        if (res.status !== 200) {
+            throw new Error(body.message)
+        }
+        return weatherDataFromOpenMapData(body as OpenWeatherMapData)
+    })
+    return [controller.abort.bind(controller), promise]
+}
+
+const DEBOUNCE_MS = 400
 
 const Main: FunctionComponent<MainProps> = (props) => {
     const [weatherData, setWeatherData] = useState<WeatherData | undefined>()
     const [error, setError] = useState<Error | undefined>()
-    const locationRef = useRef<string>();
-    const apiKeyRef = useRef<string>();
+    const locationRef = useRef<string>()
+    const apiKeyRef = useRef<string>()
+
+    const queuedReq = useRef<number>()
+    const cancelInflightRequest = useRef<() => void>()
+    const lastCallArgs = useRef<string>()
+    const fetchWeatherFn = () => {
+        if (props.onGetWeatherData) {
+            return props.onGetWeatherData
+        }
+        return (opts: GetWeatherOpts) => {
+            const argsStr = opts.apiKey + opts.location
+            if (argsStr === lastCallArgs.current) {
+                // Dedupe calls
+                return
+            }
+            lastCallArgs.current = argsStr
+            // Whenever we get another call, cancel any inflight request (only keep the latest one)
+            if (cancelInflightRequest.current) {
+                cancelInflightRequest.current()
+                cancelInflightRequest.current = undefined
+            }
+            return new Promise<WeatherData>((resolve, reject) => {
+                if (queuedReq.current) {
+                    // If we call again faster than DEBOUNCE_MS, just cancel our queued request and let this one go instead.
+                    window.clearTimeout(queuedReq.current)
+                    queuedReq.current = undefined
+                }
+                queuedReq.current = window.setTimeout(() => {
+                    const [cancel, promise] = getWeatherData(opts)
+                    cancelInflightRequest.current = cancel
+                    promise
+                        .then(resolve)
+                        .catch((e) => {
+                            if (
+                                e instanceof DOMException &&
+                                e.code === e.ABORT_ERR
+                            ) {
+                                // Don't show aborted errors to the user
+                                return
+                            }
+                            reject(e)
+                        })
+                        .finally(() => {
+                            queuedReq.current = undefined
+                            cancelInflightRequest.current = undefined
+                        })
+                }, DEBOUNCE_MS)
+            })
+        }
+    }
     useEffect(() => {
-        const fetchData = props.onGetWeatherData || getWeatherData
-        if (!weatherData || apiKeyRef.current !== props.apiKey || locationRef.current === props.location) {
+        if (
+            !weatherData ||
+            apiKeyRef.current !== props.apiKey ||
+            locationRef.current !== props.location
+        ) {
             apiKeyRef.current = props.apiKey
             locationRef.current = props.location
-            fetchData({
+            const promise = fetchWeatherFn()({
                 apiKey: props.apiKey,
                 location: props.location,
             })
-                .then(setWeatherData)
-                .catch(setError)
+            if (promise) {
+                promise
+                    .then((data) => {
+                        setError(undefined)
+                        setWeatherData(data)
+                    })
+                    .catch(setError)
+            }
         }
     }, [props.onGetWeatherData, props.location, props.apiKey])
     return <WeatherView data={weatherData} error={error} />
